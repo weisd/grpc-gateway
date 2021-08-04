@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"math"
 	"net/textproto"
-	"os"
 	"reflect"
 	"regexp"
 	"sort"
@@ -17,9 +16,9 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/go-kratos/grpc-gateway/v2/internal/casing"
+	"github.com/go-kratos/grpc-gateway/v2/internal/descriptor"
 	"github.com/golang/glog"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/internal/casing"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/internal/descriptor"
 	openapi_options "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -1295,6 +1294,7 @@ func applyTemplate(p param) (*openapiSwaggerObject, error) {
 			Title:   *p.File.Name,
 			Version: "version not set",
 		},
+		Schemes: []string{"HTTP", "HTTPS", "WS", "WSS"},
 	}
 
 	// Loops through all the services and their exposed GET/POST/PUT/DELETE definitions
@@ -1862,7 +1862,7 @@ func enumValueProtoComments(reg *descriptor.Registry, enum *descriptor.Enum) str
 
 func protoComments(reg *descriptor.Registry, file *descriptor.File, outers []string, typeName string, typeIndex int32, fieldPaths ...int32) string {
 	if file.SourceCodeInfo == nil {
-		fmt.Fprintln(os.Stderr, "descriptor.File should not contain nil SourceCodeInfo")
+		//fmt.Fprintln(os.Stderr, "descriptor.File should not contain nil SourceCodeInfo")
 		return ""
 	}
 

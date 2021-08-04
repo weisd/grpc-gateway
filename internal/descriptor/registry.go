@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-kratos/grpc-gateway/v2/internal/codegenerator"
+	"github.com/go-kratos/grpc-gateway/v2/internal/descriptor/openapiconfig"
 	"github.com/golang/glog"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/internal/codegenerator"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/internal/descriptor/openapiconfig"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -110,24 +110,18 @@ type Registry struct {
 	// RPC methods that have no HttpRule annotation.
 	generateUnboundMethods bool
 
+	generateRPCMethods bool
+
 	// omitPackageDoc, if false, causes a package comment to be included in the generated code.
 	omitPackageDoc bool
 
 	// recursiveDepth sets the maximum depth of a field parameter
 	recursiveDepth int
-
-	// annotationMap is used to check for duplicate HTTP annotations
-	annotationMap map[annotationIdentifier]struct{}
 }
 
 type repeatedFieldSeparator struct {
 	name string
 	sep  rune
-}
-
-type annotationIdentifier struct {
-	method       string
-	pathTemplate string
 }
 
 // NewRegistry returns a new Registry.
@@ -148,15 +142,24 @@ func NewRegistry() *Registry {
 		messageOptions: make(map[string]*options.Schema),
 		serviceOptions: make(map[string]*options.Tag),
 		fieldOptions:   make(map[string]*options.JSONSchema),
-		annotationMap:  make(map[annotationIdentifier]struct{}),
 		recursiveDepth: 1000,
 	}
 }
 
 // Load loads definitions of services, methods, messages, enumerations and fields from "req".
 func (r *Registry) Load(req *pluginpb.CodeGeneratorRequest) error {
+	var profofiles []*descriptorpb.FileDescriptorProto
+	registry := map[string]struct{}{}
+	for _, f := range req.ProtoFile {
+		if _, ok := registry[f.GetName()]; !ok {
+			registry[f.GetName()] = struct{}{}
+			profofiles = append(profofiles, f)
+		}
+	}
+	req.ProtoFile = profofiles
 	gen, err := protogen.Options{}.New(req)
 	if err != nil {
+		fmt.Println("New err:", err)
 		return err
 	}
 	// Note: keep in mind that this might be not enough because
@@ -570,6 +573,11 @@ func (r *Registry) SetGenerateUnboundMethods(generate bool) {
 	r.generateUnboundMethods = generate
 }
 
+// SetGenerateRPCMethods sets generateRPCMethods
+func (r *Registry) SetGenerateRPCMethods(rpc bool) {
+	r.generateRPCMethods = rpc
+}
+
 // SetOmitPackageDoc controls whether the generated code contains a package comment (if set to false, it will contain one)
 func (r *Registry) SetOmitPackageDoc(omit bool) {
 	r.omitPackageDoc = omit
@@ -691,14 +699,4 @@ func (r *Registry) FieldName(f *Field) string {
 		return f.GetJsonName()
 	}
 	return f.GetName()
-}
-
-func (r *Registry) CheckDuplicateAnnotation(httpMethod string, httpTemplate string) error {
-	a := annotationIdentifier{method: httpMethod, pathTemplate: httpTemplate}
-	_, ok := r.annotationMap[a]
-	if ok {
-		return fmt.Errorf("duplicate annotation: method=%s, template=%s", httpMethod, httpTemplate)
-	}
-	r.annotationMap[a] = struct{}{}
-	return nil
 }

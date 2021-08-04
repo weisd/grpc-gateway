@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/go-kratos/grpc-gateway/v2/internal/codegenerator"
+	"github.com/go-kratos/grpc-gateway/v2/internal/descriptor"
+	"github.com/go-kratos/grpc-gateway/v2/protoc-gen-openapiv2/internal/genopenapi"
 	"github.com/golang/glog"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/internal/codegenerator"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/internal/descriptor"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/internal/genopenapi"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/pluginpb"
 )
@@ -34,6 +34,7 @@ var (
 	proto3OptionalNullable     = flag.Bool("proto3_optional_nullable", false, "whether Proto3 Optional fields should be marked as x-nullable")
 	openAPIConfiguration       = flag.String("openapi_configuration", "", "path to file which describes the OpenAPI Configuration in YAML format")
 	generateUnboundMethods     = flag.Bool("generate_unbound_methods", false, "generate swagger metadata even for RPC methods that have no HttpRule annotation")
+	generateRPCMethods         = flag.Bool("generate_rpc_methods", false, "generate swagger metadata even for RPC methods without HttpRule annotation")
 	recursiveDepth             = flag.Int("recursive-depth", 1000, "maximum recursion count allowed for a field type")
 )
 
@@ -92,6 +93,7 @@ func main() {
 	reg.SetSimpleOperationIDs(*simpleOperationIDs)
 	reg.SetProto3OptionalNullable(*proto3OptionalNullable)
 	reg.SetGenerateUnboundMethods(*generateUnboundMethods)
+	reg.SetGenerateRPCMethods(*generateRPCMethods)
 	reg.SetRecursiveDepth(*recursiveDepth)
 	if err := reg.SetRepeatedPathParamSeparator(*repeatedPathParamSeparator); err != nil {
 		emitError(err)
