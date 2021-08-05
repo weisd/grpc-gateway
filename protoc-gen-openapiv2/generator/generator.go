@@ -29,7 +29,10 @@ func NewGenerator(options ...Option) *Generator {
 
 // Gen generates openapi v2 json content
 func (g *Generator) Gen(req *pluginpb.CodeGeneratorRequest, onlyRPC bool) (*pluginpb.CodeGeneratorResponse, error) {
-	reg := NewGenerator(UseJSONNamesForFields(true), RecursiveDepth(1024), MergeFileName("apidocs")).reg
+	reg := g.reg
+	if reg == nil {
+		reg = NewGenerator().reg
+	}
 	reg.SetGenerateRPCMethods(onlyRPC)
 	if err := reg.SetRepeatedPathParamSeparator("csv"); err != nil {
 		return nil, err
