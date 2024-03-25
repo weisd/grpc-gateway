@@ -36,3 +36,10 @@ func DisableDefaultErrors(b bool) Option {
 		gen.reg.SetDisableDefaultErrors(b)
 	}
 }
+
+// SetUseGoTemplate. if set, you can use Go templates in protofile comments
+func SetUseGoTemplate(b bool) Option {
+	return func(gen *Generator) {
+		gen.reg.SetUseGoTemplate(b)
+	}
+}
