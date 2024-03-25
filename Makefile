@@ -81,15 +81,8 @@ $(GENERATE_UNBOUND_METHODS_EXAMPLE_SRCS): $(GENERATE_UNBOUND_METHODS_EXAMPLE_SPE
 	@rm -f $(EXAMPLE_CLIENT_DIR)/generateunboundmethods/README.md \
 		$(EXAMPLE_CLIENT_DIR)/generateunboundmethods/git_push.sh
 
-TMP_INSTALL_DIR := $(shell mktemp -d)
 install:
-	@mkdir -p ${TMP_INSTALL_DIR}
-	cd ${TMP_INSTALL_DIR} && go get \
-		google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1.0 \
-		google.golang.org/protobuf/cmd/protoc-gen-go@v1.26.0 \
-		github.com/bufbuild/buf/cmd/buf@v0.41.0
-	@rmdir ${TMP_INSTALL_DIR}
-
+	go install github.com/bufbuild/buf/cmd/buf@v1.14.0
 	go install \
 		./protoc-gen-openapiv2 \
 		./protoc-gen-grpc-gateway
@@ -122,6 +115,32 @@ proto:
 	buf generate \
 		--template ./examples/internal/proto/examplepb/use_go_template.buf.gen.yaml \
 		--path examples/internal/proto/examplepb/use_go_template.proto
+	buf generate \
+		--template ./examples/internal/proto/examplepb/ignore_comment.buf.gen.yaml \
+		--path examples/internal/proto/examplepb/ignore_comment.proto
+	buf generate \
+		--template ./examples/internal/proto/examplepb/remove_internal_comment.buf.gen.yaml \
+		--path examples/internal/proto/examplepb/remove_internal_comment.proto
+	buf generate \
+		--template ./examples/internal/proto/examplepb/visibility_rule_preview_echo_service.buf.gen.yaml \
+		--path examples/internal/proto/examplepb/visibility_rule_echo_service.proto
+	mv examples/internal/proto/examplepb/visibility_rule_echo_service.swagger.json examples/internal/proto/examplepb/visibility_rule_preview_echo_service.swagger.json
+	buf generate \
+		--template ./examples/internal/proto/examplepb/visibility_rule_internal_echo_service.buf.gen.yaml \
+		--path examples/internal/proto/examplepb/visibility_rule_echo_service.proto
+	mv examples/internal/proto/examplepb/visibility_rule_echo_service.swagger.json examples/internal/proto/examplepb/visibility_rule_internal_echo_service.swagger.json
+	buf generate \
+		--template ./examples/internal/proto/examplepb/visibility_rule_none_echo_service.buf.gen.yaml \
+		--path examples/internal/proto/examplepb/visibility_rule_echo_service.proto
+	mv examples/internal/proto/examplepb/visibility_rule_echo_service.swagger.json examples/internal/proto/examplepb/visibility_rule_none_echo_service.swagger.json
+	buf generate \
+		--template ./examples/internal/proto/examplepb/visibility_rule_preview_and_internal_echo_service.buf.gen.yaml \
+		--path examples/internal/proto/examplepb/visibility_rule_echo_service.proto
+	mv examples/internal/proto/examplepb/visibility_rule_echo_service.swagger.json examples/internal/proto/examplepb/visibility_rule_preview_and_internal_echo_service.swagger.json
+	buf generate \
+		--template ./examples/internal/proto/examplepb/visibility_rule_enums_as_ints_echo_service.buf.gen.yaml \
+		--path examples/internal/proto/examplepb/visibility_rule_echo_service.proto
+	mv examples/internal/proto/examplepb/visibility_rule_echo_service.swagger.json examples/internal/proto/examplepb/visibility_rule_enums_as_ints_echo_service.swagger.json
 
 generate: proto $(ECHO_EXAMPLE_SRCS) $(ABE_EXAMPLE_SRCS) $(UNANNOTATED_ECHO_EXAMPLE_SRCS) $(RESPONSE_BODY_EXAMPLE_SRCS) $(GENERATE_UNBOUND_METHODS_EXAMPLE_SRCS)
 
