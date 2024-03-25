@@ -38,7 +38,7 @@ func (g *Generator) Gen(req *pluginpb.CodeGeneratorRequest, onlyRPC bool) (*plug
 		return nil, err
 	}
 
-	gen := genopenapi.New(reg)
+	gen := genopenapi.New(reg, genopenapi.FormatJSON)
 
 	if err := genopenapi.AddErrorDefs(reg); err != nil {
 		return nil, err
